@@ -1,6 +1,7 @@
 {
   "chains": [
-    ["jumper", "kvm"]
+    ["jumper", "kvm"],
+    ["jumper"]
   ],
   "nodes": [
     {
