@@ -63,13 +63,13 @@ func LoginLine(node *host.Node) string {
 		var cmd string
 		switch  {
 		case !utils.Empty(n.User) && !utils.Empty(n.Port):
-			cmd = fmt.Sprintf("%s#ssh %s@%s -p%s", n.Name, n.User, n.IP, n.Port)
+			cmd = fmt.Sprintf("ssh %s@%s -p%s", n.User, n.IP, n.Port)
 		case !utils.Empty(n.User) && utils.Empty(n.Port):
-			cmd = fmt.Sprintf("%s#ssh %s@%s", n.Name, n.User, n.IP)
+			cmd = fmt.Sprintf("ssh %s@%s", n.User, n.IP)
 		case utils.Empty(n.User) && !utils.Empty(n.Port):
-			cmd = fmt.Sprintf("%s#ssh %s -p%s", n.Name, n.IP, n.Port)
+			cmd = fmt.Sprintf("ssh %s -p%s", n.IP, n.Port)
 		case utils.Empty(n.User) && utils.Empty(n.Port):
-			cmd = fmt.Sprintf("%s#ssh %s", n.Name, n.IP)
+			cmd = fmt.Sprintf("ssh %s", n.IP)
 		}
 
 		if !utils.Empty(n.Passwd) {
@@ -78,5 +78,5 @@ func LoginLine(node *host.Node) string {
 
 		res = append(res, cmd)
 	}
-	return strings.Join(res, ";")
+	return fmt.Sprintf("%s#%s", node.Name, strings.Join(res, ";"))
 }
