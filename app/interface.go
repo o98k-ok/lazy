@@ -8,12 +8,16 @@ import (
 )
 
 var Nodes *host.NodeGraph
-const IconPath = "../conf/lazy.jpeg"
+var IconPath = "../conf/lazy.jpeg"
 
 func InitApp(chains [][]string, nodes []host.Node)  error {
 	var err error
 	Nodes, err = host.NewNodeGraph(chains, nodes)
 	return err
+}
+
+func SetIconPath(path string) {
+	IconPath = path
 }
 
 // FilterByKeys
