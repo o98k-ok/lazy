@@ -1,4 +1,4 @@
-package main
+package lazy
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 )
 
-func main() {
+func test_main() {
 	d, err := ioutil.ReadFile("./conf/conf.json")
 	if err != nil {
 		fmt.Println(err)
