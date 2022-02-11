@@ -8,42 +8,31 @@ import (
 type Node struct {
 	Name string   `json:"name"`
 	Tags []string `json:"tags"`
-	Type string   `json:"type"`
-	// Nid string
 
 	IP     string `json:"ip"`
 	Port   string `json:"port"`
 	User   string `json:"user"`
 	Passwd string `json:"passwd"`
+	Depend string `json:"depend"`
 
 	Extra string `json:"extra"`
 }
 
 type NodeGraph struct {
-	// all nodes type relations
-	Types TypeDependency
-	// all nodes list: key=ip
+	// all nodes list: key=name
 	Nodes map[string]*Node
 	// key: node one tag
 	Tags map[string][]*Node
-	// key: type name
-	TypeNodes map[string][]*Node
 }
 
-func NewNodeGraph(chains [][]string, nodes []Node) (*NodeGraph, error) {
+func NewNodeGraph(nodes []Node) (*NodeGraph, error) {
 	resGraph := NodeGraph{
-		Types:     NewTypeDependency(chains),
 		Nodes:     make(map[string]*Node),
 		Tags:      make(map[string][]*Node),
-		TypeNodes: make(map[string][]*Node),
 	}
 
 	for i, elem := range nodes {
-		resGraph.Nodes[elem.IP] = &nodes[i]
-		if _, ok := resGraph.TypeNodes[elem.Type]; !ok {
-			resGraph.TypeNodes[elem.Type] = make([]*Node, 0)
-		}
-		resGraph.TypeNodes[elem.Type] = append(resGraph.TypeNodes[elem.Type], &nodes[i])
+		resGraph.Nodes[elem.Name] = &nodes[i]
 
 		for _, t := range elem.Tags {
 			if _, ok := resGraph.Tags[t]; !ok {
@@ -107,24 +96,19 @@ func (ng *NodeGraph) ListNodeByKey(key string) []*Node {
 func (ng *NodeGraph) GenNodeRelation(node *Node) []*Node {
 	res := make([]*Node, 0)
 
-	mtype := node.Type
-	relationLine, ok := ng.Types[mtype]
-	if !ok {
-		return res
-	}
+	for  {
+		// reverse order
+		res = append([]*Node{node}, res...)
+		dependKey := node.Depend
+		if utils.Empty(dependKey) {
+			break
+		}
 
-	for _, rela := range relationLine {
-		res = append(res, GetFirstNode(ng.TypeNodes[rela.Name]))
+		var ok bool
+		if node, ok = ng.Nodes[dependKey]; !ok {
+			return make([]*Node, 0)
+		}
 	}
 
 	return res
-}
-
-// TODO here you can expand your node info
-func GetFirstNode(nodes []*Node) *Node {
-	if len(nodes) <= 0 {
-		return nil
-	}
-
-	return nodes[0]
 }

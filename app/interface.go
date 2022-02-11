@@ -8,11 +8,11 @@ import (
 )
 
 var Nodes *host.NodeGraph
-var IconPath = "../conf/lazy.jpeg"
+var IconPath string
 
-func InitApp(chains [][]string, nodes []host.Node)  error {
+func InitApp(nodes []host.Node)  error {
 	var err error
-	Nodes, err = host.NewNodeGraph(chains, nodes)
+	Nodes, err = host.NewNodeGraph(nodes)
 	return err
 }
 
