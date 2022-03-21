@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -14,15 +15,10 @@ func TestErrItems(t *testing.T) {
 		expect := fmt.Sprintf("{\"items\":[{\"title\":\"%s\",\"subtitle\":\"%s\"}]}", title, err.Error())
 
 		logBuf := &bytes.Buffer{}
-		expectLog := fmt.Sprintf("%s err %v", title, err)
+		expectLog := fmt.Sprintf("%s err %v\n", title, err)
 
 		res := errItemsWithLog(title, err, logBuf)
-		if res.Encode() != expect {
-			t.Errorf("test failed, expect %v got %v", expect, res.Encode())
-		}
-
-		if logBuf.String() != expectLog {
-			t.Errorf("test failed, expect %v got %v", expectLog, logBuf.String())
-		}
+		assert.Equal(t, expect, res.Encode())
+		assert.Equal(t, expectLog, logBuf.String())
 	})
 }
