@@ -1,4 +1,4 @@
-package utils
+package collection
 
 import (
 	"reflect"
@@ -9,8 +9,8 @@ func TestSet(t *testing.T) {
 	arr := []string{"who", "i", "am"}
 	brr := []string{"i", "am", "shadow"}
 
-	set1 := NewSet(arr)
-	set2 := NewSet(brr)
+	set1 := NewSet[string](arr)
+	set2 := NewSet[string](brr)
 
 	t.Run("test and cases", func(t *testing.T) {
 		res := set1.AND(set2)
@@ -30,17 +30,10 @@ func TestSet(t *testing.T) {
 		}
 	})
 
-	t.Run("test bad cases", func(t *testing.T) {
-		set := NewSet("bad cases")
-		if set != nil {
-			t.Errorf("test failed, expect nil, got %v", set)
-		}
-	})
-
 	t.Run("test for each cases", func(t *testing.T) {
 		res := make([]string, 0)
-		NewSet([]string{"am", "i"}).ForEach(func(i interface{}) {
-			res = append(res, i.(string))
+		NewSet[string]([]string{"am", "i"}).ForEach(func(i string) {
+			res = append(res, i)
 		})
 
 		if !reflect.DeepEqual(res, []string{"am", "i"}) && !reflect.DeepEqual(res, []string{"i", "am"}) {
