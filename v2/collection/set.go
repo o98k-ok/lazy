@@ -2,13 +2,13 @@ package collection
 
 import "reflect"
 
-type Set[T comparable] map[T]bool
+type Set[T comparable] map[T]struct{}
 
 func NewSet[T comparable](s []T) Set[T] {
 	res := make(Set[T])
 
 	for _, c := range s {
-		res[c] = true
+		res[c] = struct{}{}
 	}
 	return res
 }
