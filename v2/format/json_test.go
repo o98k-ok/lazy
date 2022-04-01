@@ -96,6 +96,25 @@ func TestFormat(t *testing.T) {
     }
 }`,
 		},
+		{
+			"test empty list",
+			[]int{},
+			`[]`,
+		},
+		{
+			"test empty map",
+			map[string]interface{}{},
+			`{}`,
+		},
+		{
+			"test complex case",
+			map[string]interface{}{
+				"shadow": nil,
+			},
+			`{
+    "shadow": null
+}`,
+		},
 	}
 
 	for _, c := range cases {
