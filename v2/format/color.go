@@ -24,7 +24,7 @@ var (
 	Black   = color.New(color.FgBlack).FprintFunc()
 	White   = color.New(color.FgWhite).FprintFunc()
 	Green   = color.New(color.FgGreen).FprintFunc()
-	Yellow  = color.New(color.FgYellow).FprintfFunc()
+	Yellow  = color.New(color.FgYellow).FprintFunc()
 	Cyan    = color.New(color.FgCyan).FprintFunc()
 	Magenta = color.New(color.FgMagenta).FprintFunc()
 	Red     = color.New(color.FgRed).FprintFunc()
