@@ -2,6 +2,7 @@ package mac
 
 import (
 	"bytes"
+	"github.com/o98k-ok/lazy/v2/collection"
 	"io"
 	"testing"
 
@@ -35,7 +36,7 @@ func TestDefaultsRead(t *testing.T) {
 	})
 
 	t.Run("test inner cases", func(t *testing.T) {
-		res, err := getAttr([]string{"location"}, nil)
+		res, err := collection.GetAttr([]string{"location"}, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, nil, res)
 	})
