@@ -14,7 +14,7 @@ func (j *JudgeError) Unwrap() error {
 	return j.err
 }
 
-func IfNoError(err error) *JudgeError {
+func NoError(err error) *JudgeError {
 	if err != nil {
 		return &JudgeError{err: err}
 	}
@@ -22,21 +22,21 @@ func IfNoError(err error) *JudgeError {
 	return &JudgeError{err: nil}
 }
 
-func IfEqual(expect, got interface{}) *JudgeError {
+func Equal(expect, got interface{}) *JudgeError {
 	if expect == got {
 		return &JudgeError{err: nil}
 	}
 	return &JudgeError{err: fmt.Errorf("expect %v got %v", expect, got)}
 }
 
-func IfNotEqual(expect, got interface{}) *JudgeError {
+func NotEqual(expect, got interface{}) *JudgeError {
 	if expect != got {
 		return &JudgeError{err: nil}
 	}
 	return &JudgeError{err: fmt.Errorf("expect not %v got %v", expect, got)}
 }
 
-func (j *JudgeError) ElIfEqual(expect, got interface{}) *JudgeError {
+func (j *JudgeError) AndEqual(expect, got interface{}) *JudgeError {
 	if j.err != nil {
 		return &JudgeError{err: j.err}
 	}
@@ -47,7 +47,7 @@ func (j *JudgeError) ElIfEqual(expect, got interface{}) *JudgeError {
 	return &JudgeError{err: fmt.Errorf("expect %v got %v", expect, got)}
 }
 
-func (j *JudgeError) ElIfNotEqual(expect, got interface{}) *JudgeError {
+func (j *JudgeError) AndNotEqual(expect, got interface{}) *JudgeError {
 	if j.err != nil {
 		return &JudgeError{err: j.err}
 	}

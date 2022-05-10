@@ -10,7 +10,7 @@ func TestAssert(t *testing.T) {
 		var err error
 		r1, r2 := 10, 100
 
-		err = IfNoError(err).ElIfEqual(10, r1).ElIfNotEqual(10, r2).Unwrap()
+		err = NoError(err).AndEqual(10, r1).AndNotEqual(10, r2).Unwrap()
 		if err != nil {
 			t.Fatalf("test failed, err %v", err)
 		}
@@ -19,7 +19,7 @@ func TestAssert(t *testing.T) {
 	t.Run("test Equal->NotEqual", func(t *testing.T) {
 		r1, r2 := 10, 100
 
-		err := IfEqual(10, r1).ElIfEqual(10, r1).ElIfNotEqual(10, r2).Unwrap()
+		err := Equal(10, r1).AndEqual(10, r1).AndNotEqual(10, r2).Unwrap()
 		if errors.Unwrap(err) != nil {
 			t.Fatalf("test failed, err %v", err)
 		}
@@ -28,7 +28,7 @@ func TestAssert(t *testing.T) {
 	t.Run("test NotEqual->Equal", func(t *testing.T) {
 		r1, r2 := 10, 100
 
-		err := IfNotEqual(10, r2).ElIfEqual(10, r1).ElIfNotEqual(10, r2).Unwrap()
+		err := NotEqual(10, r2).AndEqual(10, r1).AndNotEqual(10, r2).Unwrap()
 		if errors.Unwrap(err) != nil {
 			t.Fatalf("test failed, err %v", err)
 		}
