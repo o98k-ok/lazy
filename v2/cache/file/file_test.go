@@ -1,84 +1,103 @@
 package file
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 )
 
+func genData(t *testing.T, tt time.Time, input string) string {
+	d, err := json.Marshal(Persistence[string]{
+		Time:    tt,
+		Content: input,
+	})
+	assert.NoError(t, err)
+	return string(d)
+}
+
+func createTempFile(t *testing.T, match string, content string) (*os.File, func()) {
+	fd, err := os.CreateTemp("", match)
+	assert.NoError(t, err)
+
+	fd.Write([]byte(content))
+	fd.Seek(0, 0)
+
+	cleaner := func() {
+		fd.Close()
+		os.Remove(fd.Name())
+	}
+	return fd, cleaner
+}
+
 func TestSyncCache(t *testing.T) {
 	t.Run("empty file", func(t *testing.T) {
-		buff := &bytes.Buffer{}
-		fCache := NewFileCache[string](buff, time.Second)
+		fd, cleaner := createTempFile(t, "sync_empty_file", "")
+		defer cleaner()
+
+		fCache := NewFileCache[string](fd, time.Second)
 		got, err := fCache.Load(func() (string, error) {
 			return "hello, world", nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "hello, world", got)
 
-		var per Persistence[string]
-		err = json.Unmarshal(buff.Bytes(), &per)
+		gotd, err := ioutil.ReadFile(fd.Name())
 		assert.NoError(t, err)
-		assert.Equal(t, "hello, world", per.Content)
+		assert.NotEmpty(t, gotd)
 	})
 
 	t.Run("with cache", func(t *testing.T) {
-		// {"Time":"2022-05-14T14:00:58.483194+08:00","Content":"hello, world"}
 		var (
 			cached   = "cached hello, world"
 			realtime = "new hello, world"
 		)
-		d, err := json.Marshal(Persistence[string]{
-			Time:    time.Now(),
-			Content: cached,
-		})
-		assert.NoError(t, err)
-		buff := bytes.NewBuffer(d)
+
+		d := genData(t, time.Now(), cached)
+		fd, cleaner := createTempFile(t, "sync_with_cache", d)
+		defer cleaner()
 
 		// expire time is so long, so using cached result
-		fCache := NewFileCache[string](buff, time.Hour)
+		fCache := NewFileCache[string](fd, time.Hour)
 		got, err := fCache.Load(func() (string, error) {
 			return realtime, nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, cached, got)
 
-		// buff has read over, so check empty buff
-		assert.Empty(t, buff.Bytes())
+		gotd, err := ioutil.ReadFile(fd.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, d, string(gotd))
 	})
 
 	t.Run("with expire cache", func(t *testing.T) {
-		// {"Time":"2022-05-14T14:00:58.483194+08:00","Content":"hello, world"}
-		var (
-			cached   = "cached hello, world"
-			realtime = "new hello, world"
-		)
-		d, err := json.Marshal(Persistence[string]{
-			Time:    time.Now().Add(-time.Minute),
-			Content: cached,
-		})
-		assert.NoError(t, err)
-		buff := bytes.NewBuffer(d)
+		var realtime = "new hello, world"
+		d := genData(t, time.Now().Add(-time.Minute), "cache hello, world")
+		fd, cleaner := createTempFile(t, "sync_with_cache", d)
+		defer cleaner()
 
 		// expire time is so short, so using new fetch data
-		fCache := NewFileCache[string](buff, time.Second)
+		fCache := NewFileCache[string](fd, time.Second)
 		got, err := fCache.Load(func() (string, error) {
 			return realtime, nil
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, realtime, got)
 
-		// check cache updated
-		assert.NotEqual(t, d, buff.Bytes())
+		gotd, err := ioutil.ReadFile(fd.Name())
+		assert.NoError(t, err)
+		assert.NotEqual(t, d, string(gotd))
 	})
 }
 
 func TestAsyncLoad(t *testing.T) {
 	t.Run("empty file", func(t *testing.T) {
-		buff := &bytes.Buffer{}
-		fCache := NewFileCache[string](buff, time.Second)
+		fd, cleaner := createTempFile(t, "sync_empty_file", "")
+		defer cleaner()
+
+		fCache := NewFileCache[string](fd, time.Second)
 		old, newd, err := fCache.AsyncLoad(func() (string, error) {
 			return "hello, world", nil
 		})
@@ -87,10 +106,9 @@ func TestAsyncLoad(t *testing.T) {
 		assert.Equal(t, "hello, world", old)
 		assert.Equal(t, "hello, world", <-newd)
 
-		var per Persistence[string]
-		err = json.Unmarshal(buff.Bytes(), &per)
+		gotd, err := ioutil.ReadFile(fd.Name())
 		assert.NoError(t, err)
-		assert.Equal(t, "hello, world", per.Content)
+		assert.NotEmpty(t, gotd)
 	})
 
 	t.Run("with cache", func(t *testing.T) {
@@ -99,15 +117,13 @@ func TestAsyncLoad(t *testing.T) {
 			cached   = "cached hello, world"
 			realtime = "new hello, world"
 		)
-		d, err := json.Marshal(Persistence[string]{
-			Time:    time.Now(),
-			Content: cached,
-		})
-		assert.NoError(t, err)
-		buff := bytes.NewBuffer(d)
+
+		d := genData(t, time.Now(), cached)
+		fd, cleaner := createTempFile(t, "sync_with_cache", d)
+		defer cleaner()
 
 		// expire time is so long, so using cached result
-		fCache := NewFileCache[string](buff, time.Hour)
+		fCache := NewFileCache[string](fd, time.Hour)
 		old, newd, err := fCache.AsyncLoad(func() (string, error) {
 			return realtime, nil
 		})
@@ -115,8 +131,9 @@ func TestAsyncLoad(t *testing.T) {
 		assert.Equal(t, cached, old)
 		assert.Equal(t, cached, <-newd)
 
-		// buff has read over, so check empty buff
-		assert.Empty(t, buff.Bytes())
+		gotd, err := ioutil.ReadFile(fd.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, d, string(gotd))
 	})
 
 	t.Run("with expire cache", func(t *testing.T) {
@@ -125,15 +142,12 @@ func TestAsyncLoad(t *testing.T) {
 			cached   = "cached hello, world"
 			realtime = "new hello, world"
 		)
-		d, err := json.Marshal(Persistence[string]{
-			Time:    time.Now().Add(-time.Minute),
-			Content: cached,
-		})
-		assert.NoError(t, err)
-		buff := bytes.NewBuffer(d)
+		d := genData(t, time.Now().Add(-time.Minute), "cached hello, world")
+		fd, cleaner := createTempFile(t, "sync_with_cache", d)
+		defer cleaner()
 
 		// expire time is so short, so using new fetch data
-		fCache := NewFileCache[string](buff, time.Second)
+		fCache := NewFileCache[string](fd, time.Second)
 		old, newd, err := fCache.AsyncLoad(func() (string, error) {
 			return realtime, nil
 		})
@@ -141,7 +155,8 @@ func TestAsyncLoad(t *testing.T) {
 		assert.Equal(t, cached, old)
 		assert.Equal(t, realtime, <-newd)
 
-		// check cache updated
-		assert.NotEqual(t, d, buff.Bytes())
+		gotd, err := ioutil.ReadFile(fd.Name())
+		assert.NoError(t, err)
+		assert.NotEqual(t, d, string(gotd))
 	})
 }

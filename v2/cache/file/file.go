@@ -2,7 +2,7 @@ package file
 
 import (
 	"encoding/json"
-	"io"
+	"os"
 	"sync"
 	"time"
 )
@@ -10,17 +10,17 @@ import (
 // Cache cache T into file via dump
 type Cache[T any] struct {
 	mtx    sync.Mutex
-	writer io.ReadWriter
+	fd     *os.File
 	expire time.Duration
 	codec  Codec
 }
 
-func NewFileCache[T any](rw io.ReadWriter, expire time.Duration) *Cache[T] {
+func NewFileCache[T any](fd *os.File, expire time.Duration) *Cache[T] {
 	return &Cache[T]{
 		mtx:    sync.Mutex{},
 		expire: expire,
-		writer: rw,
-		codec:  JsonCodec{json.NewEncoder(rw), json.NewDecoder(rw)},
+		fd:     fd,
+		codec:  JsonCodec{json.NewEncoder(fd), json.NewDecoder(fd)},
 	}
 }
 
@@ -36,6 +36,8 @@ func (f *Cache[T]) fetchAndDump(fn func() (T, error)) (res T, err error) {
 	}
 
 	f.mtx.Lock()
+	f.fd.Truncate(0)
+	f.fd.Seek(0, 0)
 	err = f.codec.Encode(Persistence[T]{time.Now(), res})
 	f.mtx.Unlock()
 	return
