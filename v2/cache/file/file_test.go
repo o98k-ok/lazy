@@ -38,7 +38,7 @@ func TestSyncCache(t *testing.T) {
 		defer cleaner()
 
 		fCache := NewFileCache[string](fd, time.Second)
-		got, err := fCache.Load(func() (string, error) {
+		got, err := fCache.Load(func(cached string, etime time.Time) (string, error) {
 			return "hello, world", nil
 		})
 		assert.NoError(t, err)
@@ -61,7 +61,7 @@ func TestSyncCache(t *testing.T) {
 
 		// expire time is so long, so using cached result
 		fCache := NewFileCache[string](fd, time.Hour)
-		got, err := fCache.Load(func() (string, error) {
+		got, err := fCache.Load(func(cached string, etime time.Time) (string, error) {
 			return realtime, nil
 		})
 		assert.NoError(t, err)
@@ -73,18 +73,18 @@ func TestSyncCache(t *testing.T) {
 	})
 
 	t.Run("with expire cache", func(t *testing.T) {
-		var realtime = "new hello, world"
-		d := genData(t, time.Now().Add(-time.Minute), "cache hello, world")
+		input := "cache hello, world"
+		d := genData(t, time.Now().Add(-time.Minute), input)
 		fd, cleaner := createTempFile(t, "sync_with_cache", d)
 		defer cleaner()
 
 		// expire time is so short, so using new fetch data
 		fCache := NewFileCache[string](fd, time.Second)
-		got, err := fCache.Load(func() (string, error) {
-			return realtime, nil
+		got, err := fCache.Load(func(cached string, etime time.Time) (string, error) {
+			return cached + cached, nil
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, realtime, got)
+		assert.Equal(t, input+input, got)
 
 		gotd, err := ioutil.ReadFile(fd.Name())
 		assert.NoError(t, err)
@@ -98,7 +98,7 @@ func TestAsyncLoad(t *testing.T) {
 		defer cleaner()
 
 		fCache := NewFileCache[string](fd, time.Second)
-		old, newd, err := fCache.AsyncLoad(func() (string, error) {
+		old, newd, err := fCache.AsyncLoad(func(cached string, etime time.Time) (string, error) {
 			return "hello, world", nil
 		})
 
@@ -124,7 +124,7 @@ func TestAsyncLoad(t *testing.T) {
 
 		// expire time is so long, so using cached result
 		fCache := NewFileCache[string](fd, time.Hour)
-		old, newd, err := fCache.AsyncLoad(func() (string, error) {
+		old, newd, err := fCache.AsyncLoad(func(cached string, etime time.Time) (string, error) {
 			return realtime, nil
 		})
 		assert.NoError(t, err)
@@ -148,7 +148,7 @@ func TestAsyncLoad(t *testing.T) {
 
 		// expire time is so short, so using new fetch data
 		fCache := NewFileCache[string](fd, time.Second)
-		old, newd, err := fCache.AsyncLoad(func() (string, error) {
+		old, newd, err := fCache.AsyncLoad(func(cached string, etime time.Time) (string, error) {
 			return realtime, nil
 		})
 		assert.NoError(t, err)

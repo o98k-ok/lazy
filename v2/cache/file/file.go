@@ -29,8 +29,8 @@ func (f *Cache[T]) WithOption(codec Codec) *Cache[T] {
 	return f
 }
 
-func (f *Cache[T]) fetchAndDump(fn func() (T, error)) (res T, err error) {
-	res, err = fn()
+func (f *Cache[T]) fetchAndDump(fn func(cached T, etime time.Time) (T, error), cached Persistence[T]) (res T, err error) {
+	res, err = fn(cached.Content, cached.Time)
 	if err != nil {
 		return
 	}
@@ -45,7 +45,7 @@ func (f *Cache[T]) fetchAndDump(fn func() (T, error)) (res T, err error) {
 
 // Load from cache file when cache is available
 //      sync update and load when cache is unavailable
-func (f *Cache[T]) Load(fn func() (T, error)) (T, error) {
+func (f *Cache[T]) Load(fn func(cached T, etime time.Time) (T, error)) (T, error) {
 	var cached Persistence[T]
 	f.mtx.Lock()
 	err := f.codec.Decode(&cached)
@@ -58,12 +58,12 @@ func (f *Cache[T]) Load(fn func() (T, error)) (T, error) {
 
 	// cache is expired or not available
 	// fetch and cache it
-	return f.fetchAndDump(fn)
+	return f.fetchAndDump(fn, cached)
 }
 
 // AsyncLoad from cache file when cache is available
 //      async update and load when cache is unavailable
-func (f *Cache[T]) AsyncLoad(fn func() (T, error)) (cached T, realtime chan T, err error) {
+func (f *Cache[T]) AsyncLoad(fn func(cached T, etime time.Time) (T, error)) (cached T, realtime chan T, err error) {
 	realtime = make(chan T, 1)
 	var persistenceCache Persistence[T]
 	f.mtx.Lock()
@@ -79,7 +79,7 @@ func (f *Cache[T]) AsyncLoad(fn func() (T, error)) (cached T, realtime chan T, e
 
 	// cache is not available, fetch and cache it
 	if err != nil {
-		cached, err = f.fetchAndDump(fn)
+		cached, err = f.fetchAndDump(fn, persistenceCache)
 		realtime <- cached
 		return
 	}
@@ -87,7 +87,7 @@ func (f *Cache[T]) AsyncLoad(fn func() (T, error)) (cached T, realtime chan T, e
 	// cache is expired
 	// fetch and cache it
 	go func() {
-		realData, _ := f.fetchAndDump(fn)
+		realData, _ := f.fetchAndDump(fn, persistenceCache)
 		realtime <- realData
 	}()
 	return persistenceCache.Content, realtime, err
