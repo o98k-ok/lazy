@@ -1,9 +1,10 @@
 package alfred
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFlowVariables(t *testing.T) {
@@ -22,7 +23,7 @@ func TestFlowVariables(t *testing.T) {
 </dict>
 </plist>`
 		reader := strings.NewReader(content)
-		envs, err := flowVariables(reader)
+		envs, err := FlowVariablesWithReader(reader)
 
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(envs))
@@ -45,7 +46,7 @@ func TestFlowVariables(t *testing.T) {
 	</dict>
 </dict>
 </plist>`
-		_, err := flowVariables(strings.NewReader(content))
+		_, err := FlowVariablesWithReader(strings.NewReader(content))
 		assert.Error(t, err)
 	})
 
@@ -64,7 +65,7 @@ func TestFlowVariables(t *testing.T) {
 	</dict>
 </dict>
 </plist>`
-		_, err := flowVariables(strings.NewReader(content))
+		_, err := FlowVariablesWithReader(strings.NewReader(content))
 		assert.Error(t, err)
 	})
 }

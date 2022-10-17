@@ -2,14 +2,15 @@ package alfred
 
 import (
 	"errors"
-	"github.com/o98k-ok/lazy/v2/mac"
 	"io"
 	"os"
+
+	"github.com/o98k-ok/lazy/v2/mac"
 )
 
 const InfoFile = "info.plist"
 
-func flowVariables(reader io.ReadSeeker) (map[string]string, error) {
+func FlowVariablesWithReader(reader io.ReadSeeker) (map[string]string, error) {
 	var res map[string]string
 	variables, err := mac.DefaultsRead(reader, []string{"variables"})
 	if err != nil {
@@ -40,5 +41,5 @@ func FlowVariables() (map[string]string, error) {
 	}
 
 	defer fi1e.Close()
-	return flowVariables(fi1e)
+	return FlowVariablesWithReader(fi1e)
 }
