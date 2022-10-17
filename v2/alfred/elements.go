@@ -3,7 +3,6 @@ package alfred
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 )
@@ -35,7 +34,7 @@ func ErrItems(title string, err error) *Items {
 }
 
 func errItemsWithLog(title string, err error, writer io.Writer) *Items {
-	fmt.Fprintf(writer, "%s err %v\n", title, err)
+	log(writer, "%s err %v\n", title, err)
 	return NewItems().Append(NewItem(title, err.Error(), ""))
 }
 
