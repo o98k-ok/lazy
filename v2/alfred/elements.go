@@ -29,8 +29,8 @@ func (i *Items) Encode() string {
 	return string(dat)
 }
 
-func ErrItems(title string, err error) *Items {
-	return errItemsWithLog(title, err, os.Stderr)
+func (i *Items) Show() {
+	Deliver(i.Encode())
 }
 
 func errItemsWithLog(title string, err error, writer io.Writer) *Items {
@@ -38,6 +38,14 @@ func errItemsWithLog(title string, err error, writer io.Writer) *Items {
 	return NewItems().Append(NewItem(title, err.Error(), ""))
 }
 
+func ErrItems(title string, err error) *Items {
+	return errItemsWithLog(title, err, os.Stderr)
+}
+
 func EmptyItems() *Items {
 	return ErrItems("404", errors.New("empty result"))
+}
+
+func InputErrItems(content string) *Items {
+	return ErrItems("input error", errors.New(content))
 }
