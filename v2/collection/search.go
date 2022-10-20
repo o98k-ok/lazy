@@ -19,7 +19,7 @@ func SearchSlice[T any](items []T, key string) []T {
 
 func SearchMap[T any](items map[string]T, key string) map[string]T {
 	res := make(map[string]T)
-	for key, item := range items {
+	for _, item := range items {
 		dest := strings.ToLower(fmt.Sprint(item))
 		match := strings.ToLower(key)
 		if strings.Contains(dest, match) {
