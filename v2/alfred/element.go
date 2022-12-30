@@ -9,6 +9,7 @@ type Item struct {
 	Title    string `json:"title"`
 	SubTitle string `json:"subtitle,omitempty"`
 	Icon     *Icon  `json:"icon,omitempty"`
+	Extra    interface{}
 }
 
 func NewItem(title, subtitle, arg string) *Item {

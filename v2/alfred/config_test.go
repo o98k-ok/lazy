@@ -69,3 +69,38 @@ func TestFlowVariables(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestGetFlowEnv(t *testing.T) {
+	envs := Envs{
+		"okk":    "okk",
+		"intokk": "10",
+	}
+
+	t.Run("normal cases", func(t *testing.T) {
+		assert.Condition(t, func() (success bool) {
+			val := envs.GetAsString("okk", "")
+			return val == "okk"
+		})
+	})
+
+	t.Run("empty cases", func(t *testing.T) {
+		assert.Condition(t, func() (success bool) {
+			val := envs.GetAsString("oksk", "")
+			return val == ""
+		})
+	})
+
+	t.Run("int cases", func(t *testing.T) {
+		assert.Condition(t, func() (success bool) {
+			val := envs.GetAsInt("intokk", 0)
+			return val == 10
+		})
+	})
+
+	t.Run("int empty cases", func(t *testing.T) {
+		assert.Condition(t, func() (success bool) {
+			val := envs.GetAsInt("intosk", 0)
+			return val == 0
+		})
+	})
+}

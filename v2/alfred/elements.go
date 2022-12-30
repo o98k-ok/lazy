@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"sort"
 )
 
 type Items struct {
@@ -31,6 +32,12 @@ func (i *Items) Encode() string {
 
 func (i *Items) Show() {
 	Deliver(i.Encode())
+}
+
+func (i *Items) Order(fnc func(l *Item, r *Item) bool) {
+	sort.Slice(i.Items, func(a, b int) bool {
+		return fnc(i.Items[a], i.Items[b])
+	})
 }
 
 func errItemsWithLog(title string, err error, writer io.Writer) *Items {

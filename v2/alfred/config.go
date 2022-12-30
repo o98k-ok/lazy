@@ -4,11 +4,14 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/o98k-ok/lazy/v2/mac"
 )
 
 const InfoFile = "info.plist"
+
+type Envs map[string]string
 
 func FlowVariablesWithReader(reader io.ReadSeeker) (map[string]string, error) {
 	var res map[string]string
@@ -42,4 +45,33 @@ func FlowVariables() (map[string]string, error) {
 
 	defer fi1e.Close()
 	return FlowVariablesWithReader(fi1e)
+}
+
+func GetFlowEnv() (Envs, error) {
+	return FlowVariables()
+}
+
+func (e Envs) GetAsInt(key string, def int) int {
+	val, ok := e[key]
+	if !ok {
+		return def
+	}
+
+	res, err := strconv.ParseInt(val, 10, 32)
+	if err != nil {
+		return def
+	}
+	return int(res)
+}
+
+func (e Envs) GetAsString(key string, def string) string {
+	val, ok := e[key]
+	if !ok {
+		return def
+	}
+
+	if len(val) != 0 {
+		return val
+	}
+	return def
 }
