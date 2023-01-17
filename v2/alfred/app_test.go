@@ -1,10 +1,11 @@
 package alfred
 
 import (
-	"github.com/samber/lo"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewApplication(t *testing.T) {
