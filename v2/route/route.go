@@ -57,6 +57,11 @@ func Route[T, C, R any](group Group[C], method string, relativePath string, hs *
 	}
 
 	path := group.App.GetRelPath()
-	fmt.Println(hs.API.DocIt(method, filepath.Join(path, relativePath)))
+	if hs.API != nil {
+		api, err := hs.API.DocIt(method, filepath.Join(path, relativePath))
+		if err == nil {
+			fmt.Println(api)
+		}
+	}
 	group.App.Handle(method, relativePath, real)
 }

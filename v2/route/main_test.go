@@ -9,13 +9,14 @@ import (
 )
 
 type entity struct {
-	Name string `json:"name" validate:"required" schema:"name" desc:"姓名" fake:"{firstname}"`
+	Name *string `json:"name" validate:"required" schema:"name" desc:"姓名" fake:"{firstname}"`
 }
 
 func Hello(ctx Context, req entity) (entity, error) {
 	id, _ := ctx.Param["id"].Uint32Default(0)
+	name := fmt.Sprintf("id: %d; name: %s", id, *req.Name)
 	return entity{
-		Name: fmt.Sprintf("id: %d; name: %s", id, req.Name),
+		Name: &name,
 	}, nil
 }
 
