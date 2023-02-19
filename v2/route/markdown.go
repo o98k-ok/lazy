@@ -61,9 +61,9 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 	})
 	reqHeader := []string{"字段名称", "字段类型", "字段含义", "是否必要", "备注"}
 	if elem.Method == http.MethodGet {
-		doc.Add(NewMarkyTable(reqHeader, RequestTable(elem.Req, "schema")))
+		doc.Add(NewMarkyTable(reqHeader, RequestTable(reflect.TypeOf(elem.Req), "schema", "")))
 	} else {
-		doc.Add(NewMarkyTable(reqHeader, RequestTable(elem.Req, "json")))
+		doc.Add(NewMarkyTable(reqHeader, RequestTable(reflect.TypeOf(elem.Req), "json", "")))
 	}
 	doc.Add(&marky.BlockElement{})
 
@@ -72,7 +72,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 		Caption: "3. 返回信息",
 	})
 	respHeader := []string{"字段名称", "字段类型", "字段含义", "备注"}
-	doc.Add(NewMarkyTable(respHeader, ResponseTable(elem.Resp)))
+	doc.Add(NewMarkyTable(respHeader, ResponseTable(reflect.TypeOf(elem.Resp), "")))
 	doc.Add(&marky.BlockElement{})
 
 	doc.Add(marky.Heading{
@@ -94,20 +94,25 @@ func FormatDemoCode(elem Elems) string {
 	code.WriteString(" ")
 	code.WriteString(elem.URI)
 
-	var mm map[string][]string = make(map[string][]string)
-	schema.NewEncoder().Encode(elem.Req, mm)
+	if elem.Method == http.MethodGet {
+		var mm map[string][]string = make(map[string][]string)
+		schema.NewEncoder().Encode(elem.Req, mm)
 
-	u := url.Values{}
-	for k, v := range mm {
-		u.Add(k, strings.Join(v, ","))
+		u := url.Values{}
+		for k, v := range mm {
+			u.Add(k, strings.Join(v, ","))
+		}
+
+		if len(u) > 0 {
+			code.WriteString("?")
+			code.WriteString(u.Encode())
+		}
+	} else {
+		code.WriteString("\n\n")
+		code.WriteString(FormatJson(elem.Req))
 	}
-	code.WriteString("?")
-	code.WriteString(u.Encode())
 
 	code.WriteString("\n\n")
-	code.WriteString(FormatJson(elem.Req))
-	code.WriteString("\n")
-	code.WriteString("\n")
 	code.WriteString(FormatJson(elem.Resp))
 	code.WriteString("\n")
 	return code.String()
@@ -124,10 +129,8 @@ func FormatJson(en interface{}) string {
 }
 
 // RequestTable []string{"字段名称", "字段类型", "字段含义", "是否必要", "备注"},
-func RequestTable(req interface{}, nameTag string) [][]string {
+func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 	descTag, validTag := "desc", "validate"
-	tpe := reflect.TypeOf(req)
-
 	var res [][]string
 	for i := 0; i < tpe.NumField(); i++ {
 		var fields []string
@@ -140,8 +143,14 @@ func RequestTable(req interface{}, nameTag string) [][]string {
 		if err != nil || tag.Name == "-" {
 			continue
 		}
-		fields = append(fields, tag.Name)
-		fields = append(fields, tpe.Field(i).Type.Name())
+		tagname := indent + tag.Name
+		fields = append(fields, tagname)
+
+		realType := tpe.Field(i).Type
+		if realType.Kind() == reflect.Pointer {
+			realType = tpe.Field(i).Type.Elem()
+		}
+		fields = append(fields, realType.Name())
 
 		tag, err = tags.Get(descTag)
 		if err != nil || tag.Name == "-" {
@@ -159,14 +168,16 @@ func RequestTable(req interface{}, nameTag string) [][]string {
 
 		fields = append(fields, "")
 		res = append(res, fields)
+
+		if realType.Kind() == reflect.Struct {
+			res = append(res, RequestTable(realType, tagname, tag.Name+"."+indent)...)
+		}
 	}
 	return res
 }
 
-func ResponseTable(req interface{}) [][]string {
+func ResponseTable(tpe reflect.Type, indent string) [][]string {
 	nameTag, descTag := "json", "desc"
-	tpe := reflect.TypeOf(req)
-
 	var res [][]string
 	for i := 0; i < tpe.NumField(); i++ {
 		var fields []string
@@ -179,8 +190,14 @@ func ResponseTable(req interface{}) [][]string {
 		if err != nil || tag.Name == "-" {
 			continue
 		}
-		fields = append(fields, tag.Name)
-		fields = append(fields, tpe.Field(i).Type.Name())
+		tagname := indent + tag.Name
+		fields = append(fields, tagname)
+
+		realType := tpe.Field(i).Type
+		if realType.Kind() == reflect.Pointer {
+			realType = tpe.Field(i).Type.Elem()
+		}
+		fields = append(fields, realType.Name())
 
 		tag, err = tags.Get(descTag)
 		if err != nil || tag.Name == "-" {
@@ -191,6 +208,9 @@ func ResponseTable(req interface{}) [][]string {
 
 		fields = append(fields, "")
 		res = append(res, fields)
+		if realType.Kind() == reflect.Struct {
+			res = append(res, ResponseTable(realType, tagname+"."+indent)...)
+		}
 	}
 	return res
 }
