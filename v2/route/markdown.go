@@ -142,19 +142,27 @@ func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 			realType = realType.Elem()
 		}
 
+		if field.Anonymous {
+			switch realType.Kind() {
+			case reflect.Struct:
+				res = append(res, RequestTable(realType, nameTag, indent)...)
+			case reflect.Slice, reflect.Array:
+				res = append(res, RequestTable(realType.Elem(), nameTag, indent)...)
+			}
+			continue
+		}
+
 		var fields []string
 		tags, err := structtag.Parse(string(field.Tag))
 		if err != nil {
 			continue
 		}
 
-		var tagname string = indent + field.Name
 		tag, err := tags.Get(nameTag)
-		if err == nil && tag.Name == "-" {
+		if err != nil || tag.Name == "-" {
 			continue
-		} else if err == nil {
-			tagname = indent + tag.Name
 		}
+		tagname := indent + tag.Name
 		fields = append(fields, tagname)
 
 		fields = append(fields, realType.Name())
@@ -199,19 +207,27 @@ func ResponseTable(tpe reflect.Type, indent string) [][]string {
 			realType = realType.Elem()
 		}
 
+		if field.Anonymous {
+			switch realType.Kind() {
+			case reflect.Struct:
+				res = append(res, ResponseTable(realType, indent)...)
+			case reflect.Slice, reflect.Array:
+				res = append(res, ResponseTable(realType.Elem(), indent)...)
+			}
+			continue
+		}
+
 		var fields []string
 		tags, err := structtag.Parse(string(field.Tag))
 		if err != nil {
 			continue
 		}
 
-		var tagname string = indent + field.Name
 		tag, err := tags.Get(nameTag)
-		if err == nil && tag.Name == "-" {
+		if err != nil || tag.Name == "-" {
 			continue
-		} else if err == nil {
-			tagname = indent + tag.Name
 		}
+		tagname := indent + tag.Name
 		fields = append(fields, tagname)
 
 		fields = append(fields, realType.Name())
