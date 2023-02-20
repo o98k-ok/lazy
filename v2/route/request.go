@@ -10,12 +10,14 @@ import (
 type Request interface {
 	ForceParseFromParam() bool
 	ValidRequest() bool
+	InitRequest()
 }
 
 const (
 	// AUTH  = "with_auth"
-	PARAM = "froce_param"   // orce parse request from http user param. default judge by method
-	VALID = "valid_request" // valid request body or request param via schema
+	PARAM   = "froce_param"   // orce parse request from http user param. default judge by method
+	VALID   = "valid_request" // valid request body or request param via schema
+	DEFAULT = "default_value" // parse request with default value
 )
 
 func (r *RequestParserImp[T]) ForceParseFromParam() bool {
@@ -24,6 +26,19 @@ func (r *RequestParserImp[T]) ForceParseFromParam() bool {
 
 func (r *RequestParserImp[T]) ValidRequest() bool {
 	return r.Attrs[VALID].(bool)
+}
+
+func (r *RequestParserImp[T]) InitRequest() {
+	val, ok := r.Attrs[DEFAULT]
+	if !ok {
+		return
+	}
+
+	v, ok := val.(T)
+	if !ok {
+		return
+	}
+	r.Req = v
 }
 
 func NewRequest[T any]() RequestParser[T] {
@@ -51,6 +66,7 @@ func (rp *RequestParserImp[T]) Parse(ctx iris.Context, attrs map[string]interfac
 		param = true
 	}
 
+	rp.InitRequest()
 	if param {
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(&rp.Req, ctx.Request().URL.Query())
