@@ -9,7 +9,7 @@ import (
 )
 
 type entity struct {
-	Name *string `json:"name" validate:"required" schema:"name" desc:"姓名" fake:"{firstname}"`
+	Name *string `json:"name" schema:"name" desc:"姓名" fake:"{firstname}"`
 }
 
 func Hello(ctx Context, req entity) (entity, error) {
@@ -27,6 +27,7 @@ func TestLogic(t *testing.T) {
 		Resp:    &ResponseHandlerImp{DefaultMsg: "ok", DefaultCode: 0},
 		App:     app,
 	}
-	Route(group, http.MethodGet, "/hello/{id:uint32}", NewHandler(Hello), nil)
+	var val string = "o98k"
+	Route(group, http.MethodGet, "/hello/{id:uint32}", NewHandler(Hello), map[string]interface{}{DEFAULT: entity{Name: &val}})
 	// app.Listen(":8080")
 }
