@@ -130,13 +130,13 @@ func FormatJson(en interface{}) string {
 
 // RequestTable []string{"字段名称", "字段类型", "字段含义", "是否必要", "备注"},
 func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
-	if tpe.Kind() != reflect.Struct {
-		return nil
-	}
 	descTag, validTag := "desc", "validate"
 	var res [][]string
 	if tpe.Kind() == reflect.Pointer {
 		tpe = tpe.Elem()
+	}
+	if tpe.Kind() != reflect.Struct {
+		return nil
 	}
 	for i := 0; i < tpe.NumField(); i++ {
 		field := tpe.Field(i)
@@ -211,14 +211,13 @@ func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 // }
 
 func ResponseTable(tpe reflect.Type, indent string) [][]string {
-	if tpe.Kind() != reflect.Struct {
-		return nil
-	}
-
 	nameTag, descTag := "json", "desc"
 	var res [][]string
 	if tpe.Kind() == reflect.Pointer {
 		tpe = tpe.Elem()
+	}
+	if tpe.Kind() != reflect.Struct {
+		return nil
 	}
 	for i := 0; i < tpe.NumField(); i++ {
 		field := tpe.Field(i)
