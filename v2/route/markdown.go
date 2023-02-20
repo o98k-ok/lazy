@@ -130,6 +130,9 @@ func FormatJson(en interface{}) string {
 
 // RequestTable []string{"字段名称", "字段类型", "字段含义", "是否必要", "备注"},
 func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
+	if tpe.Kind() != reflect.Struct {
+		return nil
+	}
 	descTag, validTag := "desc", "validate"
 	var res [][]string
 	if tpe.Kind() == reflect.Pointer {
@@ -165,7 +168,11 @@ func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 		tagname := indent + tag.Name
 		fields = append(fields, tagname)
 
-		fields = append(fields, realType.Name())
+		if realType.Kind() == reflect.Slice {
+			fields = append(fields, "[]"+realType.Elem().Name())
+		} else {
+			fields = append(fields, realType.Name())
+		}
 
 		tag, err = tags.Get(descTag)
 		if err != nil || tag.Name == "-" {
@@ -183,18 +190,31 @@ func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 
 		fields = append(fields, "")
 		res = append(res, fields)
-
 		switch realType.Kind() {
 		case reflect.Struct:
 			res = append(res, RequestTable(realType, nameTag, tagname+"."+indent)...)
 		case reflect.Slice, reflect.Array:
 			res = append(res, RequestTable(realType.Elem(), nameTag, tagname+"."+indent)...)
 		}
+
 	}
 	return res
 }
 
+// func DeepIn(realType reflect.Type) [][]string {
+// 	switch realType.Kind() {
+// 	case reflect.Struct:
+// 		res = append(res, RequestTable(realType, nameTag, tagname+"."+indent)...)
+// 	case reflect.Slice, reflect.Array:
+// 		res = append(res, RequestTable(realType.Elem(), nameTag, tagname+"."+indent)...)
+// 	}
+// }
+
 func ResponseTable(tpe reflect.Type, indent string) [][]string {
+	if tpe.Kind() != reflect.Struct {
+		return nil
+	}
+
 	nameTag, descTag := "json", "desc"
 	var res [][]string
 	if tpe.Kind() == reflect.Pointer {
@@ -230,7 +250,11 @@ func ResponseTable(tpe reflect.Type, indent string) [][]string {
 		tagname := indent + tag.Name
 		fields = append(fields, tagname)
 
-		fields = append(fields, realType.Name())
+		if realType.Kind() == reflect.Slice {
+			fields = append(fields, "[]"+realType.Elem().Name())
+		} else {
+			fields = append(fields, realType.Name())
+		}
 
 		tag, err = tags.Get(descTag)
 		if err != nil || tag.Name == "-" {
