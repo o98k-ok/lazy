@@ -132,24 +132,31 @@ func FormatJson(en interface{}) string {
 func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 	descTag, validTag := "desc", "validate"
 	var res [][]string
+	if tpe.Kind() == reflect.Pointer {
+		tpe = tpe.Elem()
+	}
 	for i := 0; i < tpe.NumField(); i++ {
+		field := tpe.Field(i)
+		realType := field.Type
+		if realType.Kind() == reflect.Pointer {
+			realType = realType.Elem()
+		}
+
 		var fields []string
-		tags, err := structtag.Parse(string(tpe.Field(i).Tag))
+		tags, err := structtag.Parse(string(field.Tag))
 		if err != nil {
 			continue
 		}
 
+		var tagname string = indent + field.Name
 		tag, err := tags.Get(nameTag)
-		if err != nil || tag.Name == "-" {
+		if err == nil && tag.Name == "-" {
 			continue
+		} else if err == nil {
+			tagname = indent + tag.Name
 		}
-		tagname := indent + tag.Name
 		fields = append(fields, tagname)
 
-		realType := tpe.Field(i).Type
-		if realType.Kind() == reflect.Pointer {
-			realType = tpe.Field(i).Type.Elem()
-		}
 		fields = append(fields, realType.Name())
 
 		tag, err = tags.Get(descTag)
@@ -169,8 +176,11 @@ func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 		fields = append(fields, "")
 		res = append(res, fields)
 
-		if realType.Kind() == reflect.Struct {
-			res = append(res, RequestTable(realType, tagname, tag.Name+"."+indent)...)
+		switch realType.Kind() {
+		case reflect.Struct:
+			res = append(res, RequestTable(realType, nameTag, tagname+"."+indent)...)
+		case reflect.Slice, reflect.Array:
+			res = append(res, RequestTable(realType.Elem(), nameTag, tagname+"."+indent)...)
 		}
 	}
 	return res
@@ -179,24 +189,31 @@ func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
 func ResponseTable(tpe reflect.Type, indent string) [][]string {
 	nameTag, descTag := "json", "desc"
 	var res [][]string
+	if tpe.Kind() == reflect.Pointer {
+		tpe = tpe.Elem()
+	}
 	for i := 0; i < tpe.NumField(); i++ {
+		field := tpe.Field(i)
+		realType := field.Type
+		if realType.Kind() == reflect.Pointer {
+			realType = realType.Elem()
+		}
+
 		var fields []string
-		tags, err := structtag.Parse(string(tpe.Field(i).Tag))
+		tags, err := structtag.Parse(string(field.Tag))
 		if err != nil {
 			continue
 		}
 
+		var tagname string = indent + field.Name
 		tag, err := tags.Get(nameTag)
-		if err != nil || tag.Name == "-" {
+		if err == nil && tag.Name == "-" {
 			continue
+		} else if err == nil {
+			tagname = indent + tag.Name
 		}
-		tagname := indent + tag.Name
 		fields = append(fields, tagname)
 
-		realType := tpe.Field(i).Type
-		if realType.Kind() == reflect.Pointer {
-			realType = tpe.Field(i).Type.Elem()
-		}
 		fields = append(fields, realType.Name())
 
 		tag, err = tags.Get(descTag)
@@ -208,8 +225,11 @@ func ResponseTable(tpe reflect.Type, indent string) [][]string {
 
 		fields = append(fields, "")
 		res = append(res, fields)
-		if realType.Kind() == reflect.Struct {
+		switch realType.Kind() {
+		case reflect.Struct:
 			res = append(res, ResponseTable(realType, tagname+"."+indent)...)
+		case reflect.Slice, reflect.Array:
+			res = append(res, ResponseTable(realType.Elem(), tagname+"."+indent)...)
 		}
 	}
 	return res
