@@ -27,7 +27,7 @@ func TestNested(t *testing.T) {
 		Age *string `json:"age" fake:"{word}"`
 	}
 	type Level1 struct {
-		Name  string  `json:"name" fake:"{firstname}"`
+		Name  string  `json:"name"  fake:"{firstname}"`
 		Level *Level2 `json:"level"`
 	}
 
