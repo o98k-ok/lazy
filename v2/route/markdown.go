@@ -64,13 +64,13 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 	var req TypeConfig
 	if elem.Method == http.MethodGet {
 		req = TypeConfig{
-			NameTag:     "json",
+			NameTag:     "schema",
 			DescTag:     "desc",
 			ValidateTag: "validate",
 		}
 	} else {
 		req = TypeConfig{
-			NameTag:     "schema",
+			NameTag:     "json",
 			DescTag:     "desc",
 			ValidateTag: "validate",
 		}
