@@ -87,25 +87,45 @@ func (t TypeConfig) getDescTag(tags *structtag.Tags) string {
 	}
 }
 
-func (t TypeConfig) getNameTag(tags *structtag.Tags, indent string) string {
+func (t TypeConfig) getNameTag(tags *structtag.Tags) string {
 	tag, err := tags.Get(t.NameTag)
 	if err != nil || tag.Name == "-" {
 		return ""
 	} else {
-		return indent + tag.Name
+		return tag.Name
 	}
 }
 
-func (t TypeConfig) ParseStruct(tpe reflect.Type, namePrefix string) [][]string {
-	var res [][]string
+type TableItem [][]string
 
+func (t TypeConfig) ParseStruct(tp reflect.Type) map[string][][]string {
+	var res map[string][][]string = make(map[string][][]string)
+	tpes := []reflect.Type{tp}
+	for len(tpes) != 0 {
+		tpe := tpes[0]
+		tpes = tpes[1:]
+
+		var prefix string
+		real := Jump(tpe, nil, func(tpe reflect.Type) { prefix = "[]" + prefix })
+		items, tps := t.ParseAnonymousStruct(real)
+		res[prefix+real.Name()] = items
+		tpes = append(tpes, tps...)
+	}
+	return res
+}
+
+func (t TypeConfig) ParseAnonymousStruct(tpe reflect.Type) ([][]string, []reflect.Type) {
+	var tpes []reflect.Type
+	var res [][]string
 	for i := 0; i < tpe.NumField(); i++ {
 		field := tpe.Field(i)
 		info := GetFieldInfo(field)
 
 		// only support Anonymous && struct
 		if info.Anonymous && info.DeepInType.Kind() == reflect.Struct {
-			res = append(res, t.ParseStruct(info.DeepInType, namePrefix)...)
+			items, extraTps := t.ParseAnonymousStruct(info.DeepInType)
+			res = append(res, items...)
+			tpes = append(tpes, extraTps...)
 			continue
 		}
 
@@ -115,7 +135,7 @@ func (t TypeConfig) ParseStruct(tpe reflect.Type, namePrefix string) [][]string 
 			continue
 		}
 
-		tagname := t.getNameTag(tags, namePrefix)
+		tagname := t.getNameTag(tags)
 		if len(tagname) == 0 {
 			continue
 		}
@@ -129,23 +149,23 @@ func (t TypeConfig) ParseStruct(tpe reflect.Type, namePrefix string) [][]string 
 		res = append(res, fields)
 
 		if info.DeepInType.Kind() == reflect.Struct {
-			res = append(res, t.ParseStruct(info.DeepInType, tagname+"."+namePrefix)...)
+			tpes = append(tpes, info.DeepInType)
 		}
 	}
-	return res
+	return res, tpes
 }
 
-func (t TypeConfig) GenerateTable(tpe reflect.Type) ([][]string, string) {
+func (t TypeConfig) GenerateTable(tpe reflect.Type) map[string][][]string {
 	var prefix string
 	real := Jump(tpe, nil, func(tpe reflect.Type) { prefix = "[]" + prefix })
 
 	switch real.Kind() {
 	case reflect.Struct:
-		return t.ParseStruct(real, ""), prefix + real.Name()
+		return t.ParseStruct(tpe)
 	case reflect.Complex128, reflect.Complex64, reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
 		fmt.Println("unsupport type parse")
-		return nil, ""
+		return nil
 	default:
-		return nil, prefix + real.Name()
+		return map[string][][]string{prefix + real.Name(): nil}
 	}
 }

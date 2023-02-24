@@ -11,7 +11,6 @@ import (
 
 	"github.com/gorilla/schema"
 	"github.com/muesli/marky"
-	"github.com/o98k-ok/lazy/v2/format"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -75,10 +74,11 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 			ValidateTag: "validate",
 		}
 	}
-	table, t := req.GenerateTable(reflect.TypeOf(elem.Req))
-	doc.Add(marky.Text{Text: fmt.Sprintf("请求数据类型为: %s\n", t)})
-	doc.Add(NewMarkyTable(reqHeader, table))
-	doc.Add(&marky.BlockElement{})
+	for t, table := range req.GenerateTable(reflect.TypeOf(elem.Req)) {
+		doc.Add(marky.Text{Text: fmt.Sprintf("请求数据类型为: %s\n", t)})
+		doc.Add(NewMarkyTable(reqHeader, table))
+		doc.Add(&marky.BlockElement{})
+	}
 
 	doc.Add(marky.Heading{
 		Level:   2,
@@ -90,10 +90,11 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 		DescTag: "desc",
 	}
 	respHeader := []string{"字段名称", "字段类型", "字段含义", "备注"}
-	table, t = resp.GenerateTable(reflect.TypeOf(elem.Resp))
-	doc.Add(marky.Text{Text: fmt.Sprintf("返回数据类型为: %s\n", t)})
-	doc.Add(NewMarkyTable(respHeader, table))
-	doc.Add(&marky.BlockElement{})
+	for t, table := range resp.GenerateTable(reflect.TypeOf(elem.Resp)) {
+		doc.Add(marky.Text{Text: fmt.Sprintf("返回数据类型为: %s\n", t)})
+		doc.Add(NewMarkyTable(respHeader, table))
+		doc.Add(&marky.BlockElement{})
+	}
 
 	doc.Add(marky.Heading{
 		Level:   2,
@@ -139,157 +140,6 @@ func FormatDemoCode(elem Elems) string {
 }
 
 func FormatJson(en interface{}) string {
-	dat, _ := json.Marshal(en)
-	var tmp map[string]interface{}
-	json.Unmarshal(dat, &tmp)
-
-	res := &bytes.Buffer{}
-	format.NewEncoder(res).Encode(tmp)
-	return res.String()
+	dat, _ := json.MarshalIndent(en, "", "  ")
+	return string(dat)
 }
-
-// RequestTable []string{"字段名称", "字段类型", "字段含义", "是否必要", "备注"},
-// func RequestTable(tpe reflect.Type, nameTag string, indent string) [][]string {
-// 	descTag, validTag := "desc", "validate"
-// 	var res [][]string
-// 	if tpe.Kind() == reflect.Pointer {
-// 		tpe = tpe.Elem()
-// 	}
-// 	if tpe.Kind() != reflect.Struct {
-// 		return nil
-// 	}
-// 	for i := 0; i < tpe.NumField(); i++ {
-// 		field := tpe.Field(i)
-// 		realType := field.Type
-// 		if realType.Kind() == reflect.Pointer {
-// 			realType = realType.Elem()
-// 		}
-
-// 		if field.Anonymous {
-// 			switch realType.Kind() {
-// 			case reflect.Struct:
-// 				res = append(res, RequestTable(realType, nameTag, indent)...)
-// 			case reflect.Slice, reflect.Array:
-// 				res = append(res, RequestTable(realType.Elem(), nameTag, indent)...)
-// 			}
-// 			continue
-// 		}
-
-// 		var fields []string
-// 		tags, err := structtag.Parse(string(field.Tag))
-// 		if err != nil {
-// 			continue
-// 		}
-
-// 		tag, err := tags.Get(nameTag)
-// 		if err != nil || tag.Name == "-" {
-// 			continue
-// 		}
-// 		tagname := indent + tag.Name
-// 		fields = append(fields, tagname)
-
-// 		if realType.Kind() == reflect.Slice {
-// 			fields = append(fields, "[]"+realType.Elem().Name())
-// 		} else {
-// 			fields = append(fields, realType.Name())
-// 		}
-
-// 		tag, err = tags.Get(descTag)
-// 		if err != nil || tag.Name == "-" {
-// 			fields = append(fields, "")
-// 		} else {
-// 			fields = append(fields, tag.Name)
-// 		}
-
-// 		tag, err = tags.Get(validTag)
-// 		if err == nil && tag.Name == "required" {
-// 			fields = append(fields, "YES")
-// 		} else {
-// 			fields = append(fields, "NO")
-// 		}
-
-// 		fields = append(fields, "")
-// 		res = append(res, fields)
-// 		switch realType.Kind() {
-// 		case reflect.Struct:
-// 			res = append(res, RequestTable(realType, nameTag, tagname+"."+indent)...)
-// 		case reflect.Slice, reflect.Array:
-// 			res = append(res, RequestTable(realType.Elem(), nameTag, tagname+"."+indent)...)
-// 		}
-
-// 	}
-// 	return res
-// }
-
-// // func DeepIn(realType reflect.Type) [][]string {
-// // 	switch realType.Kind() {
-// // 	case reflect.Struct:
-// // 		res = append(res, RequestTable(realType, nameTag, tagname+"."+indent)...)
-// // 	case reflect.Slice, reflect.Array:
-// // 		res = append(res, RequestTable(realType.Elem(), nameTag, tagname+"."+indent)...)
-// // 	}
-// // }
-
-// func ResponseTable(tpe reflect.Type, indent string) [][]string {
-// 	nameTag, descTag := "json", "desc"
-// 	var res [][]string
-// 	if tpe.Kind() == reflect.Pointer {
-// 		tpe = tpe.Elem()
-// 	}
-// 	if tpe.Kind() != reflect.Struct {
-// 		return nil
-// 	}
-// 	for i := 0; i < tpe.NumField(); i++ {
-// 		field := tpe.Field(i)
-// 		realType := field.Type
-// 		if realType.Kind() == reflect.Pointer {
-// 			realType = realType.Elem()
-// 		}
-
-// 		if field.Anonymous {
-// 			switch realType.Kind() {
-// 			case reflect.Struct:
-// 				res = append(res, ResponseTable(realType, indent)...)
-// 			case reflect.Slice, reflect.Array:
-// 				res = append(res, ResponseTable(realType.Elem(), indent)...)
-// 			}
-// 			continue
-// 		}
-
-// 		var fields []string
-// 		tags, err := structtag.Parse(string(field.Tag))
-// 		if err != nil {
-// 			continue
-// 		}
-
-// 		tag, err := tags.Get(nameTag)
-// 		if err != nil || tag.Name == "-" {
-// 			continue
-// 		}
-// 		tagname := indent + tag.Name
-// 		fields = append(fields, tagname)
-
-// 		if realType.Kind() == reflect.Slice {
-// 			fields = append(fields, "[]"+realType.Elem().Name())
-// 		} else {
-// 			fields = append(fields, realType.Name())
-// 		}
-
-// 		tag, err = tags.Get(descTag)
-// 		if err != nil || tag.Name == "-" {
-// 			fields = append(fields, "")
-// 		} else {
-// 			fields = append(fields, tag.Name)
-// 		}
-
-// 		fields = append(fields, "")
-// 		res = append(res, fields)
-// 		switch realType.Kind() {
-// 		case reflect.Struct:
-// 			res = append(res, ResponseTable(realType, tagname+"."+indent)...)
-// 		case reflect.Slice, reflect.Array:
-// 			res = append(res, ResponseTable(realType.Elem(), tagname+"."+indent)...)
-// 		}
-// 	}
-// 	return res
-// }

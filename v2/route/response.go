@@ -46,3 +46,11 @@ func (r *ResponseHandlerImp) Failed(ctx iris.Context, err error) {
 		Message: msg + ":" + err.Error(),
 	})
 }
+
+func (r *ResponseHandlerImp) ResponseEntity(en interface{}) interface{} {
+	return ResponseEntity{
+		Code:    0,
+		Data:    en,
+		Message: "",
+	}
+}

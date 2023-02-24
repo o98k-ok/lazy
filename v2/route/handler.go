@@ -20,9 +20,10 @@ type ResponseHandler interface {
 	OK(ctx iris.Context, data interface{})
 	ParamErr(ctx iris.Context, err error)
 	Failed(ctx iris.Context, errs error)
+	ResponseEntity(en interface{}) interface{}
 }
 
 // DocHandler doc api document
 type DocHandler[T, R any] interface {
-	DocIt(method string, path string) (string, error)
+	DocIt(method string, path string, fn func(interface{}) interface{}) (string, error)
 }

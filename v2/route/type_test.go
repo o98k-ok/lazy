@@ -19,19 +19,21 @@ func TestGenerate(t *testing.T) {
 			DescTag: "desc",
 		}
 
-		table, name := tt.GenerateTable(reflect.TypeOf(case1{}))
+		tables := tt.GenerateTable(reflect.TypeOf(case1{}))
 		assert.Condition(t, func() (success bool) {
-			return len(table) == 2 && name == "case1"
+			return len(tables) == 1 && len(tables["case1"]) == 2
 		})
+		t.Log(tables)
 
 		tt = TypeConfig{
 			NameTag: "schema",
 			DescTag: "desc",
 		}
-		table, name = tt.GenerateTable(reflect.TypeOf(case1{}))
+		tables = tt.GenerateTable(reflect.TypeOf(case1{}))
 		assert.Condition(t, func() (success bool) {
-			return len(table) == 1 && name == "case1"
+			return len(tables) == 1 && len(tables["case1"]) == 1
 		})
+		t.Log(tables)
 	})
 
 	t.Run("array cases", func(t *testing.T) {
@@ -45,19 +47,21 @@ func TestGenerate(t *testing.T) {
 			DescTag: "desc",
 		}
 
-		table, name := tt.GenerateTable(reflect.TypeOf([]*case1{}))
+		tables := tt.GenerateTable(reflect.TypeOf([]*case1{}))
 		assert.Condition(t, func() (success bool) {
-			return len(table) == 2 && name == "[]case1"
+			return len(tables) == 1 && len(tables["[]case1"]) == 2
 		})
+		t.Log(tables)
 
 		tt = TypeConfig{
 			NameTag: "schema",
 			DescTag: "desc",
 		}
-		table, name = tt.GenerateTable(reflect.TypeOf([]case1{}))
+		tables = tt.GenerateTable(reflect.TypeOf([]case1{}))
 		assert.Condition(t, func() (success bool) {
-			return len(table) == 1 && name == "[]case1"
+			return len(tables) == 1 && len(tables["[]case1"]) == 1
 		})
+		t.Log(tables)
 	})
 
 	t.Run("simple cases", func(t *testing.T) {
@@ -66,13 +70,16 @@ func TestGenerate(t *testing.T) {
 			DescTag: "desc",
 		}
 		var testabc string
-		table, name := tt.GenerateTable(reflect.TypeOf(testabc))
+		tables := tt.GenerateTable(reflect.TypeOf(testabc))
 		assert.Condition(t, func() (success bool) {
-			return len(table) == 0 && name == "string"
+			return len(tables) == 1 && len(tables["string"]) == 0
 		})
-		table, name = tt.GenerateTable(reflect.TypeOf(&testabc))
+
+		t.Log(tables)
+		tables = tt.GenerateTable(reflect.TypeOf(&testabc))
 		assert.Condition(t, func() (success bool) {
-			return len(table) == 0 && name == "string"
+			return len(tables) == 1 && len(tables["string"]) == 0
 		})
+		t.Log(tables)
 	})
 }

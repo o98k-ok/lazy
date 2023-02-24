@@ -10,7 +10,7 @@ func NewDocAPI[T, R any]() DocHandler[T, R] {
 	return &DocHandlerImp[T, R]{}
 }
 
-func (d *DocHandlerImp[T, R]) DocIt(method string, path string) (string, error) {
+func (d *DocHandlerImp[T, R]) DocIt(method string, path string, fn func(interface{}) interface{}) (string, error) {
 	var req T
 	var resp R
 	if err := gofakeit.Struct(&req); err != nil {
@@ -24,7 +24,7 @@ func (d *DocHandlerImp[T, R]) DocIt(method string, path string) (string, error) 
 		Method: method,
 		URI:    path,
 		Req:    req,
-		Resp:   resp,
+		Resp:   fn(resp),
 	}
 	return GenerateAPIDoc(elem)
 }
