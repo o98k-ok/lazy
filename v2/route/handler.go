@@ -27,3 +27,7 @@ type ResponseHandler interface {
 type DocHandler[T, R any] interface {
 	DocIt(method string, path string, fn func(interface{}) interface{}) (string, error)
 }
+
+type DocStorer interface {
+	Store(DocItem)
+}

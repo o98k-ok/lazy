@@ -1,7 +1,6 @@
 package route
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/kataras/iris/v12"
@@ -10,6 +9,7 @@ import (
 type Group[Context any] struct {
 	Context ContextParser[Context]
 	Resp    ResponseHandler
+	Storer  DocStorer
 	App     iris.Party
 }
 
@@ -17,13 +17,15 @@ type Handlers[T, C, R any] struct {
 	Request RequestParser[T]
 	API     DocHandler[T, R]
 	Handler Handler[T, C, R]
+	Tags    []string
 }
 
-func NewHandler[T, C, R any](handler Handler[T, C, R]) *Handlers[T, C, R] {
+func NewHandler[T, C, R any](handler Handler[T, C, R], tags ...string) *Handlers[T, C, R] {
 	return &Handlers[T, C, R]{
 		Request: NewRequest[T](),
 		API:     NewDocAPI[T, R](),
 		Handler: handler,
+		Tags:    tags,
 	}
 }
 
@@ -59,8 +61,14 @@ func Route[T, C, R any](group Group[C], method string, relativePath string, hs *
 	path := group.App.GetRelPath()
 	if hs.API != nil {
 		api, err := hs.API.DocIt(method, filepath.Join(path, relativePath), group.Resp.ResponseEntity)
-		if err == nil {
-			fmt.Println(api)
+		if err == nil && group.Storer != nil {
+			var item DocItem = DocItem{
+				URI:   filepath.Join(path, relativePath),
+				Group: relativePath,
+				Doc:   api,
+				Tags:  hs.Tags,
+			}
+			group.Storer.Store(item)
 		}
 	}
 	group.App.Handle(method, relativePath, real)
