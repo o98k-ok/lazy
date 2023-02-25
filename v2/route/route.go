@@ -64,7 +64,7 @@ func Route[T, C, R any](group Group[C], method string, relativePath string, hs *
 		if err == nil && group.Storer != nil {
 			var item DocItem = DocItem{
 				URI:   filepath.Join(path, relativePath),
-				Group: relativePath,
+				Group: path,
 				Doc:   api,
 				Tags:  hs.Tags,
 			}
