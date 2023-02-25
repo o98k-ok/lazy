@@ -38,6 +38,7 @@ type Elems struct {
 	URI    string
 	Req    interface{}
 	Resp   interface{}
+	Fn     func(interface{}) interface{}
 }
 
 func GenerateAPIDoc(elem Elems) (string, error) {
@@ -134,7 +135,7 @@ func FormatDemoCode(elem Elems) string {
 	}
 
 	code.WriteString("\n\n")
-	code.WriteString(FormatJson(elem.Resp))
+	code.WriteString(FormatJson(elem.Fn(elem.Resp)))
 	code.WriteString("\n")
 	return code.String()
 }

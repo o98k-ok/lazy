@@ -31,7 +31,8 @@ func (d *DocHandlerImp[T, R]) DocIt(method string, path string, fn func(interfac
 		Method: method,
 		URI:    path,
 		Req:    req,
-		Resp:   fn(resp),
+		Resp:   resp,
+		Fn:     fn,
 	}
 	return GenerateAPIDoc(elem)
 }
