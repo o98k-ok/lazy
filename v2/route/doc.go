@@ -4,6 +4,13 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 )
 
+type DocItem struct {
+	URI   string
+	Group string
+	Doc   string
+	Tags  []string
+}
+
 type DocHandlerImp[T, R any] struct{}
 
 func NewDocAPI[T, R any]() DocHandler[T, R] {
