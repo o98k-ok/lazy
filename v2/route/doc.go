@@ -1,6 +1,8 @@
 package route
 
 import (
+	"reflect"
+
 	"github.com/brianvoe/gofakeit/v6"
 )
 
@@ -23,8 +25,13 @@ func (d *DocHandlerImp[T, R]) DocIt(method string, path string, fn func(interfac
 	if err := gofakeit.Struct(&req); err != nil {
 		return "", err
 	}
-	if err := gofakeit.Struct(&resp); err != nil {
-		return "", err
+
+	if reflect.TypeOf(resp).Kind() == reflect.Slice {
+		gofakeit.Slice(&resp)
+	} else {
+		if err := gofakeit.Struct(&resp); err != nil {
+			return "", err
+		}
 	}
 
 	elem := Elems{
