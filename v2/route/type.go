@@ -166,6 +166,6 @@ func (t TypeConfig) GenerateTable(tpe reflect.Type) map[string][][]string {
 		fmt.Println("unsupport type parse")
 		return nil
 	default:
-		return map[string][][]string{prefix + real.Name(): nil}
+		return map[string][][]string{prefix + real.Name(): {{"data", real.Name(), "返回信息", ""}}}
 	}
 }
