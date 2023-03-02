@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gorilla/schema"
 	"github.com/muesli/marky"
+	"github.com/o98k-ok/schema"
 	"github.com/olekukonko/tablewriter"
 )
 

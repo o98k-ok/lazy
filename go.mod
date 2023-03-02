@@ -61,11 +61,11 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structtag v1.2.0
 	github.com/go-playground/validator/v10 v10.11.2
-	github.com/gorilla/schema v1.2.0
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/muesli/marky v0.0.0-20200722064116-9ebd8ab63071
+	github.com/o98k-ok/schema v1.2.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect

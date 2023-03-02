@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/o98k-ok/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMarkdown(t *testing.T) {
@@ -42,4 +44,20 @@ func TestNested(t *testing.T) {
 	}
 
 	fmt.Println(GenerateAPIDoc(elems))
+}
+
+func TestDefalultForSchema(t *testing.T) {
+	type Abc struct {
+		Int int `schema:"int" default:"10"`
+	}
+
+	var a Abc
+	decoder := schema.NewDecoder()
+	err := decoder.Decode(&a, map[string][]string{})
+	assert.NoError(t, err)
+	assert.Equal(t, a.Int, 10)
+
+	err = decoder.Decode(&a, map[string][]string{"int": {"20"}})
+	assert.NoError(t, err)
+	assert.Equal(t, a.Int, 20)
 }
