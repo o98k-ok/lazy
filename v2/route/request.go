@@ -3,8 +3,8 @@ package route
 import (
 	"net/http"
 
-	"github.com/gorilla/schema"
 	"github.com/kataras/iris/v12"
+	"github.com/o98k-ok/schema"
 )
 
 type Request interface {
@@ -28,19 +28,6 @@ func (r *RequestParserImp[T]) ValidRequest() bool {
 	return r.Attrs[VALID].(bool)
 }
 
-func (r *RequestParserImp[T]) InitRequest() {
-	val, ok := r.Attrs[DEFAULT]
-	if !ok {
-		return
-	}
-
-	v, ok := val.(T)
-	if !ok {
-		return
-	}
-	r.Req = v
-}
-
 func NewRequest[T any]() RequestParser[T] {
 	return &RequestParserImp[T]{
 		Attrs: map[string]interface{}{
@@ -51,7 +38,6 @@ func NewRequest[T any]() RequestParser[T] {
 }
 
 type RequestParserImp[T any] struct {
-	Req   T
 	Attrs map[string]interface{}
 }
 
@@ -66,23 +52,23 @@ func (rp *RequestParserImp[T]) Parse(ctx iris.Context, attrs map[string]interfac
 		param = true
 	}
 
-	rp.InitRequest()
+	var req T
 	if param {
 		decoder := schema.NewDecoder()
-		err := decoder.Decode(&rp.Req, ctx.Request().URL.Query())
+		err := decoder.Decode(req, ctx.Request().URL.Query())
 		if err != nil {
-			return rp.Req, err
+			return req, err
 		}
 	} else {
-		if err := ctx.ReadJSON(&rp.Req); err != nil {
-			return rp.Req, err
+		if err := ctx.ReadJSON(&req); err != nil {
+			return req, err
 		}
 	}
 
 	if rp.ValidRequest() {
-		if err := Check(&rp.Req); err != nil {
-			return rp.Req, err
+		if err := Check(&req); err != nil {
+			return req, err
 		}
 	}
-	return rp.Req, nil
+	return req, nil
 }
