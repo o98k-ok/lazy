@@ -55,7 +55,7 @@ func (rp *RequestParserImp[T]) Parse(ctx iris.Context, attrs map[string]interfac
 	var req T
 	if param {
 		decoder := schema.NewDecoder()
-		err := decoder.Decode(req, ctx.Request().URL.Query())
+		err := decoder.Decode(&req, ctx.Request().URL.Query())
 		if err != nil {
 			return req, err
 		}
