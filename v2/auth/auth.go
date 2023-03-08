@@ -9,18 +9,22 @@ type Auther interface {
 }
 
 type JwtAuther struct {
-	Key string
+	Key    string
+	Parser *jwt.Parser
 }
 
 func NewAuther(key string) Auther {
+	parse := new(jwt.Parser)
+	parse.SkipClaimsValidation = true
 	return &JwtAuther{
-		Key: key,
+		Key:    key,
+		Parser: parse,
 	}
 }
 
 func (a *JwtAuther) Auth(token string) (JWTAccessClaims, error) {
 	var tk JWTAccessClaims
-	_, err := jwt.ParseWithClaims(token, &tk, func(t *jwt.Token) (interface{}, error) {
+	_, err := a.Parser.ParseWithClaims(token, &tk, func(t *jwt.Token) (interface{}, error) {
 		return []byte(a.Key), nil
 	})
 	if err != nil {
