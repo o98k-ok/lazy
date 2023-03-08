@@ -44,7 +44,7 @@ func (s *SsoImp) GenerateToken(user UserEntity) (string, error) {
 		UserName: user.UserName,
 		Avatar:   user.Avatar,
 	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, &claims).SignedString(s.AuthKey)
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, &claims).SignedString([]byte(s.AuthKey))
 }
 
 func (s *SsoImp) Refresh(token string) (string, error) {
@@ -57,7 +57,7 @@ func (s *SsoImp) Refresh(token string) (string, error) {
 		return "", ErrUserDismissed
 	}
 	user.ExpiresAt = time.Now().Add(s.Expire).Unix()
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, &user).SignedString(s.AuthKey)
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, &user).SignedString([]byte(s.AuthKey))
 }
 
 func (s *SsoImp) UserValid(user string) bool {
