@@ -61,6 +61,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structtag v1.2.0
 	github.com/go-playground/validator/v10 v10.11.2
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
