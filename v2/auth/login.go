@@ -8,21 +8,21 @@ type SsoManager interface {
 	Refresh(w http.ResponseWriter, token string) error
 }
 
-type IrisManagerImp struct {
+type CommonManagerImp struct {
 	Cookie    CookieJar
 	So        Sso
 	TokenName string
 }
 
 func NewManager(key string, host string) SsoManager {
-	return &IrisManagerImp{
+	return &CommonManagerImp{
 		Cookie:    NewCookieJar([]string{host}),
 		So:        NewSso(key),
 		TokenName: "access_token",
 	}
 }
 
-func (imi *IrisManagerImp) Login(w http.ResponseWriter, u UserEntity) error {
+func (imi *CommonManagerImp) Login(w http.ResponseWriter, u UserEntity) error {
 	token, err := imi.So.GenerateToken(u)
 	if err != nil {
 		return err
@@ -30,11 +30,11 @@ func (imi *IrisManagerImp) Login(w http.ResponseWriter, u UserEntity) error {
 	return imi.Cookie.SetCookie(w, imi.TokenName, token)
 }
 
-func (imi *IrisManagerImp) Logout(w http.ResponseWriter) error {
+func (imi *CommonManagerImp) Logout(w http.ResponseWriter) error {
 	return imi.Cookie.ClearCookie(w, imi.TokenName)
 }
 
-func (imi *IrisManagerImp) Refresh(w http.ResponseWriter, token string) error {
+func (imi *CommonManagerImp) Refresh(w http.ResponseWriter, token string) error {
 	tk, err := imi.So.Refresh(token)
 	if err != nil {
 		return err

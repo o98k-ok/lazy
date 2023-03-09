@@ -22,6 +22,10 @@ type SsoImp struct {
 }
 
 func NewSso(key string) Sso {
+	return NewSsoImp(key)
+}
+
+func NewSsoImp(key string) *SsoImp {
 	return &SsoImp{
 		Auther:  NewAuther(key),
 		AuthKey: key,
