@@ -58,7 +58,7 @@ func (s *SsoImp) Refresh(token string) (string, error) {
 		return "", ErrNotExpiredAccessToken
 	}
 
-	if !s.UserValid(user.UserId) {
+	if !s.UserValid(user.Id) {
 		return "", ErrUserDismissed
 	}
 	user.ExpiresAt = time.Now().Add(s.Expire).Unix()
