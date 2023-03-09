@@ -16,8 +16,9 @@ type Sso interface {
 
 type SsoImp struct {
 	Auther
-	AuthKey string
-	Expire  time.Duration
+	AuthKey      string
+	Expire       time.Duration
+	UserValidFnc func(user string) bool
 }
 
 func NewSso(key string) Sso {
@@ -33,6 +34,10 @@ func (s *SsoImp) Auth(token string) (JWTAccessClaims, error) {
 }
 
 func (s *SsoImp) GenerateToken(user UserEntity) (string, error) {
+	if !s.UserValid(user.Fid) {
+		return "", ErrUserDismissed
+	}
+
 	claims := JWTAccessClaims{
 		StandardClaims: jwt.StandardClaims{
 			Audience:  user.UserId,
@@ -61,5 +66,12 @@ func (s *SsoImp) Refresh(token string) (string, error) {
 }
 
 func (s *SsoImp) UserValid(user string) bool {
+	if s.UserValidFnc != nil {
+		return s.UserValidFnc(user)
+	}
 	return true
+}
+
+func (s *SsoImp) SetValidHandler(arg func(string) bool) {
+	s.UserValidFnc = arg
 }
