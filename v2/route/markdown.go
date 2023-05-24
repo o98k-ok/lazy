@@ -41,6 +41,13 @@ type Elems struct {
 	Fn     func(interface{}) interface{}
 }
 
+type FrontConf struct {
+	Title     string `json:"title"`
+	DataIndex string `json:"dataIndex"`
+	ValueType string `json:"valueType,omitempty"`
+	Required  *bool  `json:"required,omitempty"`
+}
+
 func GenerateAPIDoc(elem Elems) (string, error) {
 	doc := marky.NewDocument()
 
@@ -75,7 +82,8 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 			ValidateTag: "validate",
 		}
 	}
-	for t, table := range req.GenerateTable(reflect.TypeOf(elem.Req)) {
+	requestTable := req.GenerateTable(reflect.TypeOf(elem.Req))
+	for t, table := range requestTable {
 		doc.Add(marky.Text{Text: fmt.Sprintf("请求数据类型为: %s\n", t)})
 		doc.Add(NewMarkyTable(reqHeader, table))
 		doc.Add(&marky.BlockElement{})
@@ -91,7 +99,8 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 		DescTag: "desc",
 	}
 	respHeader := []string{"字段名称", "字段类型", "字段含义", "备注"}
-	for t, table := range resp.GenerateTable(reflect.TypeOf(elem.Resp)) {
+	responseTable := resp.GenerateTable(reflect.TypeOf(elem.Resp))
+	for t, table := range responseTable {
 		doc.Add(marky.Text{Text: fmt.Sprintf("返回数据类型为: %s\n", t)})
 		doc.Add(NewMarkyTable(respHeader, table))
 		doc.Add(&marky.BlockElement{})
@@ -99,7 +108,49 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 
 	doc.Add(marky.Heading{
 		Level:   2,
-		Caption: "4. 请求示例",
+		Caption: "4. 参数配置",
+	})
+
+	if elem.Method == http.MethodPost || elem.Method == http.MethodPut {
+		// using request
+		for key, table := range requestTable {
+			var field []FrontConf
+			for _, t := range table {
+				reqiured := strings.EqualFold(t[3], "YES")
+				field = append(field, FrontConf{
+					Title:     t[2],
+					DataIndex: t[0],
+					Required:  &reqiured,
+				})
+			}
+			doc.Add(marky.Text{Text: fmt.Sprintf("返回类型: %s\n", key)})
+			doc.Add(marky.Code{
+				Source:   FormatJson(field),
+				Language: "json",
+			})
+			doc.Add(&marky.BlockElement{})
+		}
+	} else {
+		for key, table := range responseTable {
+			var field []FrontConf
+			for _, t := range table {
+				field = append(field, FrontConf{
+					Title:     t[2],
+					DataIndex: t[0],
+				})
+			}
+			doc.Add(marky.Text{Text: fmt.Sprintf("返回类型: %s\n", key)})
+			doc.Add(marky.Code{
+				Source:   FormatJson(field),
+				Language: "json",
+			})
+			doc.Add(&marky.BlockElement{})
+		}
+	}
+
+	doc.Add(marky.Heading{
+		Level:   2,
+		Caption: "5. 请求示例",
 	})
 
 	doc.Add(marky.Code{
