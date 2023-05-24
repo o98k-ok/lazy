@@ -125,10 +125,9 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 			}
 			doc.Add(marky.Text{Text: fmt.Sprintf("返回类型: %s\n", key)})
 			doc.Add(marky.Code{
-				Source:   FormatJson(field),
+				Source:   FormatJson(field) + "\n",
 				Language: "json",
 			})
-			doc.Add(&marky.BlockElement{})
 		}
 	} else {
 		for key, table := range responseTable {
@@ -141,12 +140,12 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 			}
 			doc.Add(marky.Text{Text: fmt.Sprintf("返回类型: %s\n", key)})
 			doc.Add(marky.Code{
-				Source:   FormatJson(field),
+				Source:   FormatJson(field) + "\n",
 				Language: "json",
 			})
-			doc.Add(&marky.BlockElement{})
 		}
 	}
+	doc.Add(&marky.BlockElement{})
 
 	doc.Add(marky.Heading{
 		Level:   2,
