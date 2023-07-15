@@ -33,9 +33,11 @@ func (r *RunnerImp[T]) Parallel(concurrency int) ([]*Result[T], error) {
 	for i := 0; i < len(r.Tasks); i++ {
 		go func(index int) {
 			conchans <- struct{}{}
-			defer func() { <-conchans }()
+			defer func() {
+				defer wg.Done()
+				<-conchans
+			}()
 
-			defer wg.Done()
 			res, err := r.Tasks[index]()
 			outputs[index] = &Result[T]{
 				Elem: res,
