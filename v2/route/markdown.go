@@ -85,6 +85,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 	requestTable := req.GenerateTable(reflect.TypeOf(elem.Req))
 	for t, table := range requestTable {
 		doc.Add(marky.Text{Text: fmt.Sprintf("请求数据类型为: %s\n", t)})
+		doc.Add(&marky.BlockElement{})
 		doc.Add(NewMarkyTable(reqHeader, table))
 		doc.Add(&marky.BlockElement{})
 	}
@@ -102,6 +103,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 	responseTable := resp.GenerateTable(reflect.TypeOf(elem.Resp))
 	for t, table := range responseTable {
 		doc.Add(marky.Text{Text: fmt.Sprintf("返回数据类型为: %s\n", t)})
+		doc.Add(&marky.BlockElement{})
 		doc.Add(NewMarkyTable(respHeader, table))
 		doc.Add(&marky.BlockElement{})
 	}
