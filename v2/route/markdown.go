@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/muesli/marky"
 	"github.com/o98k-ok/schema"
 	"github.com/olekukonko/tablewriter"
@@ -35,6 +36,7 @@ func (m MarkyTable) String() string {
 
 type Elems struct {
 	Method string
+	Index  string
 	URI    string
 	Req    interface{}
 	Resp   interface{}
@@ -50,10 +52,11 @@ type FrontConf struct {
 
 func GenerateAPIDoc(elem Elems) (string, error) {
 	doc := marky.NewDocument()
+	headPrefix := gofakeit.Username()
 
 	doc.Add(marky.Heading{
 		Level:   2,
-		Caption: "1. 接口简介",
+		Caption: "1. 接口简介  " + headPrefix,
 	})
 	header := []string{"类型", "信息", "备注"}
 	doc.Add(NewMarkyTable(header, [][]string{
@@ -64,7 +67,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 
 	doc.Add(marky.Heading{
 		Level:   2,
-		Caption: "2. 参数信息",
+		Caption: "2. 参数信息  " + headPrefix,
 	})
 	reqHeader := []string{"字段名称", "字段类型", "字段含义", "是否必要", "备注"}
 
@@ -92,7 +95,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 
 	doc.Add(marky.Heading{
 		Level:   2,
-		Caption: "3. 返回信息",
+		Caption: "3. 返回信息  " + headPrefix,
 	})
 
 	resp := TypeConfig{
@@ -110,7 +113,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 
 	doc.Add(marky.Heading{
 		Level:   2,
-		Caption: "4. 参数配置",
+		Caption: "4. 参数配置  " + headPrefix,
 	})
 
 	if elem.Method == http.MethodPost || elem.Method == http.MethodPut {
@@ -151,7 +154,7 @@ func GenerateAPIDoc(elem Elems) (string, error) {
 
 	doc.Add(marky.Heading{
 		Level:   2,
-		Caption: "5. 请求示例",
+		Caption: "5. 请求示例  " + headPrefix,
 	})
 
 	doc.Add(marky.Code{
