@@ -9,7 +9,22 @@ import (
 )
 
 type Items struct {
-	Items []*Item `json:"items"`
+	Items     []*Item   `json:"items"`
+	Preselect string    `json:"preselect,omitempty"`
+	Variables Variables `json:"variables,omitempty"`
+}
+
+func (i *Items) WithVariable(key, val string) *Items {
+	if i.Variables == nil {
+		i.Variables = make(Variables)
+	}
+	i.Variables[key] = val
+	return i
+}
+
+func (i *Items) WithPreselect(uid string) *Items {
+	i.Preselect = uid
+	return i
 }
 
 func (i *Items) Len() int {

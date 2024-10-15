@@ -75,3 +75,32 @@ func (e Envs) GetAsString(key string, def string) string {
 	}
 	return def
 }
+
+func GetEnvAsInt64(key string, def int64) int64 {
+	val := os.Getenv(key)
+	if len(val) == 0 {
+		return def
+	}
+
+	res, err := strconv.ParseInt(val, 10, 32)
+	if err != nil {
+		return def
+	}
+	return res
+}
+
+func GetEnvAsString(key string, def string) string {
+	val := os.Getenv(key)
+	if len(val) == 0 {
+		return def
+	}
+	return val
+}
+
+func GetEnvAsBool(key string, def bool) bool {
+	val := os.Getenv(key)
+	if len(val) == 0 {
+		return def
+	}
+	return val == "true"
+}
