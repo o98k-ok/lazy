@@ -74,3 +74,15 @@ func (a *Application) DefaultBind(fn BindFunc) *Application {
 	}
 	return a
 }
+
+func GetParamByIdx(args []string, idx int) string {
+	if len(args) <= 2 {
+		return ""
+	}
+
+	args = args[2:]
+	if len(args) <= idx {
+		return ""
+	}
+	return args[idx]
+}
